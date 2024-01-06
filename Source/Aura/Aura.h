@@ -4,3 +4,4 @@
 
 #include "CoreMinimal.h"
 
+#define CUSTOM_DEPTH_RED_PP 250
