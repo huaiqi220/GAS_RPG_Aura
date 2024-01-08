@@ -4,6 +4,7 @@
 #include "Character/AuraCharacter.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Player/AuraPlayerState.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -32,4 +33,36 @@ AAuraCharacter::AAuraCharacter()
 	这种设置在第三人称游戏中非常常见，其中角色的移动和方向更多地由游戏逻辑控制，而不是直接通过玩家的输入。
 	 */
 	
+}
+
+void AAuraCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	// Init ability actor info for the server
+	InitAbilityActorInfo();
+	
+}
+
+void AAuraCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// Init ability actor info for the client
+	InitAbilityActorInfo();
+}
+
+void AAuraCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}
+
+void AAuraCharacter::InitAbilityActorInfo()
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState,this);
+	/** 从player state上获取玩家状态同步到character */
+	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
+	AttributeSet = AuraPlayerState->GetAttributeSet();
 }
