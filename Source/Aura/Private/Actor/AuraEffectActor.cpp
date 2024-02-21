@@ -5,12 +5,15 @@
 
 #include "AbilitySystemInterface.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 // Sets default values
 AAuraEffectActor::AAuraEffectActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
 
 	/*Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	SetRootComponent(Mesh);
@@ -52,6 +55,26 @@ void AAuraEffectActor::BeginPlay()
 	/*
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraEffectActor::OnOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this,&AAuraEffectActor::EndOverlap);*/
+	
+}
+
+void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
+{
+	/*IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Target);
+	if(ASCInterface)
+	{
+		// ASCInterface->GetAbilitySystemComponent();
+		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	}*/
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if(TargetASC == nullptr) return;
+	check(GameplayEffectClass);
+	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(this);
+	FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, 1.f, EffectContextHandle);
+	TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+	/*TargetASC->MakeOutgoingSpec(GameplayEffectClass, 1.f,
+	TargetASC->ApplyGameplayEffectSpecToSelf()*/
 	
 }
 
