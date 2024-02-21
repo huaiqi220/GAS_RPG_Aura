@@ -22,8 +22,11 @@ void AAuraPlayerController::BeginPlay()
 
 	// 单例，持续时间内只有一个
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(Subsystem);
-	Subsystem->AddMappingContext(AuraContext,0);
+	if(Subsystem)
+	{
+		Subsystem->AddMappingContext(AuraContext,0);
+	}
+	
 	// 展示鼠标，选择光标
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
