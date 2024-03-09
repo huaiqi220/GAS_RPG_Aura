@@ -30,6 +30,8 @@ protected:
 	// UPROPERTY(EditDefaultsOnly)
 	// int customDepthValue = 250;
 	virtual void BeginPlay() override;
+
+	virtual void InitAbilityActorInfo() override;
 	
 	
 };
