@@ -64,6 +64,7 @@ void AAuraCharacter::BeginPlay()
 
 void AAuraCharacter::InitAbilityActorInfo()
 {
+	
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState,this);
@@ -79,10 +80,9 @@ void AAuraCharacter::InitAbilityActorInfo()
 	if(AuraPlayerController)
 	{
 		AAuraHUD* AuraHUD = Cast<AAuraHUD>(AuraPlayerController->GetHUD());
-
-
-
+		
 		AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 	}
+	InitializePrimaryAttributes();
 	
 }
