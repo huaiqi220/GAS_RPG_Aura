@@ -23,15 +23,26 @@ public:
 	void UnHighlightActor() override;
 	/** end Enemy Interface */
 
+	/* Combat Interface */
+
+	virtual int32 GetPlayerLevel() override;
+	
+	/* End Combat Interface*/
+	
+
 protected:
 	
-	// UPROPERTY(BlueprintReadOnly)
-	// bool bHighlighted = false;
-	// UPROPERTY(EditDefaultsOnly)
-	// int customDepthValue = 250;
+	/*UPROPERTY(BlueprintReadOnly)
+	bool bHighlighted = false;
+	UPROPERTY(EditDefaultsOnly)
+	int customDepthValue = 250;*/
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo() override;
+
+// private:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Character Class Defaults")
+	int32 Level = 1;
 	
 	
 };

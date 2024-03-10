@@ -49,3 +49,10 @@ void AAuraEnemy::UnHighlightActor()
 	// GetMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_RED_PP);
 	Weapon->SetRenderCustomDepth(false);
 }
+
+int32 AAuraEnemy::GetPlayerLevel()
+{
+	// return Super::GetLevel();
+	return Level;
+	
+}
