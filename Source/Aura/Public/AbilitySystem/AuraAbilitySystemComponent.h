@@ -29,7 +29,10 @@ public:
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 	
 private:
-	void EffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveGameplayEffectHandle);
+
+	/*ISSUES: 解决Client不显示捡起物品UI的问题，将其声明为RPC,约定必须以Client作为前缀*/
+	UFUNCTION(Client,Reliable)
+	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveGameplayEffectHandle);
 	
 	
 };

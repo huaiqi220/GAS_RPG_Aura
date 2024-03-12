@@ -4,8 +4,12 @@
 
 // 因为少写一个s，搞了半天
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AuraGameplayTags.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
+#include "Components/SplineComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
 
@@ -14,6 +18,10 @@ AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
 	// 本质 实体在服务器上发生变化时，将在服务器上的更改复制到所有客户端
+
+	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
+	
+	
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -56,72 +64,124 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 
 	CursorTrace();
+	AutoRun();
+
+	
 	
 }
+/*TODO: 不在样条上先走上样条，走上样条之后走向目的地*/
+void AAuraPlayerController::AutoRun()
+{
+	if (!bAutoRunning) return;
+	if (APawn* ControlledPawn = GetPawn())
+	{
+		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(ControlledPawn->GetActorLocation(), ESplineCoordinateSpace::World);
+		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
+		ControlledPawn->AddMovementInput(Direction);
+
+		const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
+		if (DistanceToDestination <= AutoRunAcceptanceRadius)
+		{
+			bAutoRunning = false;
+		}
+	}
+}
+
+
 
 void AAuraPlayerController::CursorTrace()
 {
-	FHitResult CursorHit;
+	
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
 	if(!CursorHit.bBlockingHit) return;
 
 	LastActor = ThisActor;
 	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
-	
-	/**
-	 * A. NULL and NULL 
-	 * - Do nothing
-	 * B. NULL and not NULL
-	 * - Hightlight this
-	 * C. notNULL and NULL
-	 * - unHightlight last
-	 * D. notNULL and notNULL and !=
-	 * - unHightlight last Hightlight this
-	 * E. last == this
-	 * - do nothing
-	 */
-
-	if (LastActor == nullptr)
+	/*调用后处理边缘加红*/
+	if(LastActor != ThisActor)
 	{
-		if(ThisActor != nullptr)
-		{
-			ThisActor->HighlightActor();
-		}
-	}
-	else
-	{
-		if(ThisActor == nullptr)
-		{
-			LastActor->UnHighlightActor();
-		}
-		else
-		{
-			if(LastActor != ThisActor)
-			{
-				LastActor->UnHighlightActor();
-				ThisActor->HighlightActor();
-			}
-		}
+		if(LastActor)LastActor->UnHighlightActor();
+		if(ThisActor)ThisActor->HighlightActor();
 	}
 
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	// GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, *InputTag.ToString());
+	if(InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	{
+		bTargeting = ThisActor ? true : false;
+		bAutoRunning = false;
+	}
+	
 }
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (GetASC() == nullptr) return;
-	GetASC()->AbilityInputTagReleased(InputTag);
+	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	{
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+		return;
+	}
+	if (bTargeting)
+	{
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+	}
+	else
+	{
+		const APawn* ControlledPawn = GetPawn();
+		if(FollowTime <= ShortPressThreshold && ControlledPawn)	
+		{
+			UNavigationPath* NavPath =  UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination);
+			if(NavPath)
+			{
+				Spline->ClearSplinePoints();
+				for(const FVector& PointLoc : NavPath->PathPoints)
+				{
+					/* 在样条曲线上加点 */
+					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+					/*DrawDebugSphere(GetWorld(),PointLoc,8.f,8,FColor::Green,false,5.f);*/
+				}
+				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];
+				bAutoRunning = true;
+				
+			}
+		}
+		else
+		{
+			FollowTime = 0.f;
+			bTargeting = false;
+		}
+	}
+
+
 }
 
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-	if (GetASC() == nullptr) return;
-	GetASC()->AbilityInputTagHeld(InputTag);
+	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	{
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+		return;
+	}
+
+	if (bTargeting)
+	{
+		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+	}
+	else
+	{
+		FollowTime += GetWorld()->GetDeltaSeconds();
+		if (CursorHit.bBlockingHit) CachedDestination = CursorHit.ImpactPoint;
+		
+		if (APawn* ControlledPawn = GetPawn())
+		{
+			const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+			ControlledPawn->AddMovementInput(WorldDirection);
+		}
+	}
 }
+
 
 UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 {
@@ -152,7 +212,6 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 - 当玩家按下 'S' 键（向后移动），`InputAxisVector.Y` 会得到一个负值。
 - `ForwardDirection` 确定了角色当前面向的方向。
 - `AddMovementInput(ForwardDirection, InputAxisVector.Y)` 根据这些信息计算并应用实际的移动。
-
 
 
 因此，这个函数允许角色根据玩家的输入（移动方向和强度）在游戏世界中进行相应的移动。
