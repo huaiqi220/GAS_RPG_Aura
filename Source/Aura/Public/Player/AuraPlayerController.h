@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "GameplayTagContainer.h"
+// #include "AuraInputConfig.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "Input/AuraInputConfig.h"
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
@@ -35,7 +39,7 @@ private:
 	TObjectPtr<UInputMappingContext> AuraContext;
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> MoveAction;
-
+	
 	void Move(const FInputActionValue& InputActionValue);
 
 	void CursorTrace();
@@ -43,4 +47,17 @@ private:
 	TObjectPtr<IEnemyInterface> ThisActor;*/
 	IEnemyInterface* LastActor;
 	IEnemyInterface* ThisActor;
+
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	/*区别于move的LMB RMB 1 2 3 4 输入Action*/
+	TObjectPtr<UAuraInputConfig> InputConfig;
+
+	UPROPERTY()
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+
+	UAuraAbilitySystemComponent* GetASC();
 };
