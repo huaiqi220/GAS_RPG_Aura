@@ -39,7 +39,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidge
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType,Blueprintable)
 class AURA_API UOverlayWidgetController : public UAuraWidgetController
 {
 	GENERATED_BODY()
@@ -63,11 +63,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category="Widge Data")
 	TObjectPtr<UDataTable> MessageWidgetDataTable;
-	
-	// void HealthChanged(const FOnAttributeChangeData& Data) const;
-	// void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
-	// void ManaChanged(const FOnAttributeChangeData& Data) const;
-	// void MaxManaChanged(const FOnAttributeChangeData& Data) const;
 
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag) const;
