@@ -57,6 +57,8 @@ void AAuraPlayerController::SetupInputComponent()
 	UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
 	AuraInputComponent->BindAbilityActions(InputConfig,this,  &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
 }
 
 void AAuraPlayerController::PlayerTick(float DeltaTime)
@@ -69,6 +71,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	
 	
 }
+
 /*TODO: 不在样条上先走上样条，走上样条之后走向目的地*/
 void AAuraPlayerController::AutoRun()
 {
@@ -86,7 +89,6 @@ void AAuraPlayerController::AutoRun()
 		}
 	}
 }
-
 
 
 void AAuraPlayerController::CursorTrace()
@@ -123,11 +125,9 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 		return;
 	}
-	if (bTargeting)
-	{
-		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
-	}
-	else
+	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+
+	if (!bTargeting && !bShiftKeyDown)
 	{
 		const APawn* ControlledPawn = GetPawn();
 		if(FollowTime <= ShortPressThreshold && ControlledPawn)	
@@ -147,11 +147,8 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				
 			}
 		}
-		else
-		{
 			FollowTime = 0.f;
 			bTargeting = false;
-		}
 	}
 
 
@@ -165,7 +162,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		return;
 	}
 
-	if (bTargeting)
+	if (bTargeting  || bShiftKeyDown)
 	{
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 	}
