@@ -15,6 +15,7 @@ class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayEffect;
 class UGameplayAbility;
+class UAnimMontage;
 
 UCLASS(Abstract)
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -26,7 +27,17 @@ public:
 	AAuraCharacterBase();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	UAttributeSet* GetAttributeSet() const { return AttributeSet; };
+	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+
+	/*这个函数源自于CombatInterface中的
+	 *
+	 *	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	 *	UAnimMontage* GetHitReactMontage();
+	 * BlueprintNativeEvent注解会自动生成一个对应虚函数，方便子类重写
+	 * 
+	 */
+	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -77,11 +88,14 @@ public:
 
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float level) const;
 
-	void InitializeDefaultAttributes() const;
+	virtual void InitializeDefaultAttributes() const;
 
 	void AddCharacterAbilities();
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TObjectPtr<UAnimMontage> HitReactMontage;
 };
