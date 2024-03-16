@@ -16,6 +16,7 @@ class UInputAction;
 struct FInputActionValue;
 class IEnemyInterface;
 class USplineComponent;
+class UDamageTextComponent;
 
 /**
  * 
@@ -27,6 +28,10 @@ class AURA_API AAuraPlayerController : public APlayerController
 
 public:
 	AAuraPlayerController();
+
+	/*展示伤害数字*/
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
 
 protected:
 
@@ -62,7 +67,7 @@ private:
 	void AbilityInputTagHeld(FGameplayTag InputTag);
 
 	void AutoRun();
-
+	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	/*区别于move的LMB RMB 1 2 3 4 输入Action*/
 	TObjectPtr<UAuraInputConfig> InputConfig;
@@ -83,4 +88,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 };

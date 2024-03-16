@@ -38,6 +38,14 @@ public:
 	 * 
 	 */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+
+
+	/*死亡函数*/
+	virtual void Die() override;
+
+	/*死亡多播*/
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastHandleDeath();
 	
 protected:
 	// Called when the game starts or when spawned
@@ -91,6 +99,25 @@ public:
 	virtual void InitializeDefaultAttributes() const;
 
 	void AddCharacterAbilities();
+
+	/* 角色死亡溶解效果 */
+	
+	void Dissolve();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	/* 角色溶解 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+	/* 武器溶解 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
+
+	/* 溶解结束 */
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Abilities")
