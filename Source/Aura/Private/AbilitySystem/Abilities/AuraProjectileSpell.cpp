@@ -34,7 +34,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		/*目的 减去 spawn*/
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
 		/*避免攻击小家伙时候火球往下飞*/
-		Rotation.Pitch = 0.f;
+		/*Rotation.Pitch = 0.f;*/
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
