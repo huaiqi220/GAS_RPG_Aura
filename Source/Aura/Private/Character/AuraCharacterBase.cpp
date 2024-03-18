@@ -3,6 +3,7 @@
 
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
@@ -60,6 +61,7 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 	/*死了没碰撞*/
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
+	bDead = true;
 }
 
 void AAuraCharacterBase::BeginPlay()
@@ -68,10 +70,22 @@ void AAuraCharacterBase::BeginPlay()
 	
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation()
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)
 {
-	check(Weapon);
-	return Weapon->GetSocketLocation(WeaponTipSocketName);
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon))
+	{
+		return Weapon->GetSocketLocation(WeaponTipSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_LeftHand))
+	{
+		return GetMesh()->GetSocketLocation(LeftHandSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_RightHand))
+	{
+		return GetMesh()->GetSocketLocation(RightHandSocketName);
+	}
+	return FVector();
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
@@ -122,40 +136,20 @@ void AAuraCharacterBase::Dissolve()
 	}
 }
 
-
-
-// 已经被封装重构
-/*void AAuraCharacterBase::InitializePrimaryAttributes() const
+bool AAuraCharacterBase::IsDead_Implementation() const
 {
-	// 使用gameplay effect来初始化角色的属性
-	check(IsValid(GetAbilitySystemComponent()));
-	check(DefaultPrimaryAttributes);
-	const FGameplayEffectContextHandle ContextHandle =  GetAbilitySystemComponent()->MakeEffectContext();
-	const FGameplayEffectSpecHandle SpecHandle =  GetAbilitySystemComponent()->MakeOutgoingSpec(DefaultPrimaryAttributes,1.f,ContextHandle);
-	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(),GetAbilitySystemComponent());
+	return bDead;
 }
 
-void AAuraCharacterBase::InitializeSecondaryAttributes() const
+AActor* AAuraCharacterBase::GetAvatar_Implementation()
 {
-	// 使用gameplay effect来初始化角色的属性
-	check(IsValid(GetAbilitySystemComponent()));
-	check(DefaultSecondaryAttributes);
-	const FGameplayEffectContextHandle ContextHandle =  GetAbilitySystemComponent()->MakeEffectContext();
-	const FGameplayEffectSpecHandle SpecHandle =  GetAbilitySystemComponent()->MakeOutgoingSpec(DefaultSecondaryAttributes,1.f,ContextHandle);
-	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(),GetAbilitySystemComponent());
-}*/
+	return this;
+}
 
-// // Called every frame
-// void AAuraCharacterBase::Tick(float DeltaTime)
-// {
-// 	Super::Tick(DeltaTime);
-//
-// }
-//
-// // Called to bind functionality to input
-// void AAuraCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-// {
-// 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-//
-// }
+TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation() const
+{
+	// return ICombatInterface::GetAttackMontages_Implementation();
+	return AttackMontages;
+	
+}
 

@@ -3,12 +3,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
 class UAnimMontage;
 
-// This class does not need to be modified.
+USTRUCT(BlueprintType)
+struct FTaggedMontage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	UAnimMontage* Montage = nullptr;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	FGameplayTag MontageTag;
+	
+};
+
+
+
+
 UINTERFACE(MinimalAPI, BlueprintType)
 class UCombatInterface : public UInterface
 {
@@ -26,7 +41,8 @@ class AURA_API ICombatInterface
 public:
 	virtual int32 GetPlayerLevel();
 	/*武器查询接口*/
-	virtual FVector GetCombatSocketLocation();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	FVector GetCombatSocketLocation(const FGameplayTag& MontageTag);
 	/*蓝图可实现函数不用声明为虚函数*/
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	void UpdateFacingTarget(const FVector& Target);
@@ -36,4 +52,13 @@ public:
 
 	/*死亡*/
 	virtual void Die() = 0;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool IsDead() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	AActor* GetAvatar();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	TArray<FTaggedMontage> GetAttackMontages() const ;
 };

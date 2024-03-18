@@ -30,22 +30,25 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 
-	/*这个函数源自于CombatInterface中的
-	 *
-	 *	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	 *	UAnimMontage* GetHitReactMontage();
-	 * BlueprintNativeEvent注解会自动生成一个对应虚函数，方便子类重写
-	 * 
-	 */
-	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
-
-
 	/*死亡函数*/
-	virtual void Die() override;
+
+
+	/** Combat Interface */
+	virtual UAnimMontage* GetHitReactMontage_Implementation() override;	
+	virtual void Die() override;	
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual bool IsDead_Implementation() const override;
+	virtual AActor* GetAvatar_Implementation() override;
+	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() const override;
+	/** end Combat Interface */
+	
 
 	/*死亡多播*/
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FTaggedMontage> AttackMontages;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -57,23 +60,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName WeaponTipSocketName;
 
-	virtual FVector GetCombatSocketLocation() override;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName LeftHandSocketName;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName RightHandSocketName;
+	
+	bool bDead = false;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
-	/**
-	 * 不为抽象基类设置tick和输入组件
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	**/
-	
 	virtual void InitAbilityActorInfo();
 
 	/*
